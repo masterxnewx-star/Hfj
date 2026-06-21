@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HM Admin Panel</title>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0a0a0a; color: #fff; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .panel { background: #111; border: 2px solid #c00; border-radius: 15px; padding: 30px; width: 420px; }
+        h1 { color: #c00; text-align: center; margin-bottom: 5px; font-size: 24px; }
+        .sub { text-align: center; color: #888; margin-bottom: 20px; font-size: 12px; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 12px; background: #1a1a1a; color: #fff; border: 1px solid #c00; border-radius: 8px; font-size: 14px; outline: none; }
+        button { padding: 12px 20px; background: #c00; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        button:hover { background: #f00; }
+        .user-list { max-height: 400px; overflow-y: auto; }
+        .user-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1a1a; border-radius: 8px; margin-bottom: 8px; }
+        .user-item span { font-size: 14px; }
+        .delete-btn { background: #333; color: #f00; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .delete-btn:hover { background: #c00; color: #fff; }
+        .status { text-align: center; margin-top: 10px; font-size: 12px; color: #888; }
+        .count { text-align: center; color: #c00; margin-bottom: 15px; font-size: 14px; }
+        .refresh-btn { background: #222; color: #fff; padding: 8px 16px; border: 1px solid #444; border-radius: 5px; cursor: pointer; font-size: 12px; margin-top: 10px; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h1>HM ADMIN</h1>
+        <div class="sub">Whitelist Manager</div>
+        <div class="count" id="count">Users: 0</div>
+        <div class="input-group">
+            <input type="text" id="nameInput" placeholder="Enter username...">
+            <button onclick="addUser()">ADD</button>
+        </div>
+        <div class="user-list" id="userList"></div>
+        <button class="refresh-btn" onclick="loadUsers()">REFRESH</button>
+        <div class="status" id="status">Loading...</div>
+    </div>
+    <script>
+        const RAW_URL = "https://raw.githubusercontent.com/masterxnewx-star/Hm-Admin/main/whitelist.json";
+        let users = [];
+
+        async function loadUsers() {
+            try {
+                const res = await fetch(RAW_URL + "?t=" + Date.now());
+                const data = await res.json();
+                users = data.users;
+                document.getElementById("userList").innerHTML = users.map(u => 
+                    `<div class="user-item"><span>${u}</span><span class="delete-btn" onclick="deleteUser('${u}')">DELETE</span></div>`
+                ).join("");
+                document.getElementById("count").textContent = "Users: " + users.length;
+                document.getElementById("status").textContent = "Loaded!";
+            } catch(e) {
+                document.getElementById("status").textContent = "Error loading";
+            }
+        }
+
+        function addUser() {
+            const name = document.getElementById("nameInput").value.trim();
+            if (!name) return;
+            if (users.includes(name)) { alert("User already exists!"); return; }
+            users.push(name);
+            document.getElementById("nameInput").value = "";
+            document.getElementById("userList").innerHTML = users.map(u => 
+                `<div class="user-item"><span>${u}</span><span class="delete-btn" onclick="deleteUser('${u}')">DELETE</span></div>`
+            ).join("");
+            document.getElementById("count").textContent = "Users: " + users.length;
+            document.getElementById("status").textContent = "Click SAVE CHANGES to update GitHub";
+        }
+
+        function deleteUser(name) {
+            users = users.filter(u => u !== name);
+            document.getElementById("userList").innerHTML = users.map(u => 
+                `<div class="user-item"><span>${u}</span><span class="delete-btn" onclick="deleteUser('${u}')">DELETE</span></div>`
+            ).join("");
+            document.getElementById("count").textContent = "Users: " + users.length;
+            document.getElementById("status").textContent = "Click SAVE CHANGES to update GitHub";
+        }
+
+        loadUsers();
+    </script>
+</body>
+</html>
